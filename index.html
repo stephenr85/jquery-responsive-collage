@@ -1,14 +1,16 @@
 <!DOCTYPE html>
 <html>
 <head>
-      <script src="http://cdnjs.cloudflare.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
-      <script src="jquery.responsiveCollage.js"></script>
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>     
+	<script src="js/jquery.responsiveCollage.js"></script>
     <script>
         $(document).ready(function(){
-            $('#collage').responsiveCollage();
+            $('#collage').responsiveCollage({
+				itemSelector: '> div.collage-item'
+			});
         });
     </script>
-      <link rel="stylesheet" href="styles.css" />
+      <link rel="stylesheet" href="css/styles.css" />
 </head>
 <body>
 <header></header>
