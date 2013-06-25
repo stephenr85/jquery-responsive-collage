@@ -1,4 +1,7 @@
 (function($){
+	var testStyle = document.createElement('div').style;
+	$.support.cssTransitions = (('transition' in testStyle) || ('MozTransition' in testStyle)) && (document.documentMode === undefined || document.documentMode > 8);
+	
 	/**
 	* @class Collage
 	* @constructor
@@ -17,19 +20,35 @@
             play:true,
             repeat:true,
             loop:true,
+			isLegacy: !$.support.cssTransitions,
+			legacy:function($next, $prev, index, prevIndex){
+				var I = this;
+				clearTimeout(I.nextTimeout);
+				$next.stop().animate({
+					opacity:1
+				}, function(){
+					I.nextTimeout = setTimeout(function(){
+						if(I.option('play')) 
+							I.next();
+					}, I.option('showTime'));
+				});
+				$prev.stop().animate({
+					opacity:0
+				});
+			},
             itemSelector:'ul:first > li',
             overlappingClasses:true,
             showingClass:'showing',
             hidingClass:'hiding',
-            showTime:4000,
+            showTime:6000,
             watchProperty:'color',
             generateItemButtons:true,
-						itemButtonsContainer: null,
+			itemButtonsContainer: null,
             nextButton:false,
             prevButton:false,
             pauseButton:false,
             playButton:false,
-						isTouch: !!('ontouchstart' in window || navigator.msMaxTouchPoints)
+			isTouch: !!('ontouchstart' in window || navigator.msMaxTouchPoints)
         },
         option:function(key, value){
             if(arguments.length === 1 && typeof key === 'string'){
@@ -102,7 +121,7 @@
 					return Math.max(one,two) - Math.min(one,two);
 				},
 				getTouchPos = function(evt){
-					if(I.options.isTouch){
+					if(o.isTouch){
 						return {
 							x: evt.originalEvent.touches[0].pageX,
 							y: evt.originalEvent.touches[0].pageY
@@ -116,7 +135,10 @@
 				};
 				
 			I.element.on('mousedown touchstart', function(startEvent){
-				startEvent.preventDefault();
+				//alert(o.isTouch);
+				if(!o.isTouch){
+					startEvent.preventDefault();
+				}
 				var touchStart = $.extend({}, getTouchPos(startEvent)),
 					wasDrag = false;
 					
@@ -132,7 +154,7 @@
 						return;	
 					}else{
 						wasDrag = true;
-						endEvent.preventDefault();	
+						if(!o.isTouch) endEvent.preventDefault();	
 					}
 					var touchEnd = $.extend({}, getTouchPos(endEvent)),
 						xDiff = diff(touchStart.x, touchEnd.x) || 1,
@@ -180,7 +202,12 @@
                 }
             });
 
-
+			if(o.isLegacy){
+				this.items().css({
+					opacity: 0,
+					visibility:'visible'
+				});	
+			}
 
             this.next();
         },
@@ -215,6 +242,11 @@
                 $btns.removeClass(o.showingClass);
                 $btn.addClass(o.showingClass).remove(o.hidingClass);
             }
+			
+			if(o.isLegacy){
+				o.legacy.call(this, $item, $prev, index, prevIndex);	
+			}
+			
             this.element.trigger('change', $item, $prev, index, prevIndex);
 
         },
