@@ -1,7 +1,7 @@
 (function($){
 	var testStyle = document.createElement('div').style;
-	$.support.cssTransitions = (('transition' in testStyle) || ('MozTransition' in testStyle)) && (document.documentMode === undefined || document.documentMode > 8);
-	
+	$.support.cssTransitions = (('transition' in testStyle) || ('MozTransition' in testStyle) || ('WebkitTransition' in testStyle) || ('OTransition' in testStyle)) && (document.documentMode === undefined || document.documentMode > 8);
+
 	/**
 	* @class Collage
 	* @constructor
@@ -23,11 +23,11 @@
 			isLegacy: !$.support.cssTransitions,
 			legacy:function($next, $prev, index, prevIndex){
 				var I = this;
-				clearTimeout(I.nextTimeout);
+				clearTimeout(I.showTimeout);
 				$next.stop().animate({
 					opacity:1
 				}, function(){
-					I.nextTimeout = setTimeout(function(){
+					I.showTimeout = setTimeout(function(){
 						if(I.option('play')) 
 							I.next();
 					}, I.option('showTime'));
@@ -193,8 +193,9 @@
 			
 			//Watch for transition events to progress the sequence
             this.element.on('transitioned webkitTransitionEnd', '.'+o.showingClass, function(evt){
-                if(evt.originalEvent.propertyName === o.watchProperty){
-                    I.showTimeout = setTimeout(function(){
+				if(evt.originalEvent.propertyName === o.watchProperty){
+                    clearTimeout(I.showTimeout);
+					I.showTimeout = setTimeout(function(){
                         if(I.options.play){
                             I.next();
                         }
@@ -213,7 +214,7 @@
         },
 
         show:function(item){
-            clearInterval(this.showTimeout);
+            clearTimeout(this.showTimeout);
 
             var o = this.options,
                 $items = this.items(),
